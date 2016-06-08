@@ -7,4 +7,5 @@ All script names start with the creation date of the script.
 
 ### Two folders:
 * **initial**: Initial data analysis and data testing scripts
+* **knitr**: Rnw files used to generate pdfs using the knitr package
 * **models**: Models and model evaluation scripts
