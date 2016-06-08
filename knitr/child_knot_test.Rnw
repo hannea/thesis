@@ -1,0 +1,106 @@
+<<include=FALSE>>=
+library(knitr)
+# set global chunk options
+opts_chunk$set(fig.width = 5, fig.height = 3, par = TRUE, fig.pos = "H", fig.align = "center", size = "footnotesize") 
+knit_hooks$set(par = function(before, options, envir) {
+  if (before) par(mar = c(4, 4, 2, 1)) # ? ? top right
+})
+opts_knit$set(concordance = FALSE)
+# options(formatR.arrow = TRUE, width = 80) # set character width to 80 characters = standard
+
+# width = 80 doesn't work, but size = "footnotesize" in opts_chunk$set gives 90 characters 
+@
+
+<<set-parent, echo=FALSE, cache=FALSE>>=
+setwd("C:/Users/Hanne/Dropbox/aspeciale/R/data_investigation/Rnw")
+set_parent('main_parent.Rnw')
+@
+
+<<load_and_source, include=FALSE, cache=TRUE>>=
+setwd("//math.aau.dk/Fileshares/Vestas")
+load("4WT_1Month.RData")
+
+setwd("//math.aau.dk/Fileshares/Vestas/functions")
+source("identify_WTs_func_Vestas_file.R")
+source("count_alarms_constant_var_faster.R")
+source("count_alarms_hetero_faster.R")
+source("interpolate_func_Vestas_file_POSIXct_NAs.R")
+
+library(dplyr)
+@
+
+% \section{Choosing Knots}
+<<identify,cache=TRUE, results='hide', echo=FALSE>>=
+split_data = identify_WTs_func(data)
+interpolated_vib  = interpolate_POSIXct_2mins(split_data, var = "RMSISOGeneratorDE")
+interpolated_load = interpolate_POSIXct_2mins(split_data, var = "GeneratorSpeed")
+vib  = interpolated_vib[2:5]
+load = interpolated_load[2:5]
+@
+
+<<knots_xtables, results='asis', echo=FALSE>>=
+library(splines)
+library(xtable)
+
+knot.no = c(5,10,15,20,30,40)
+load_min = 17
+
+for (i in 1:4){
+  AIC_unif = c()
+  BIC_unif = c()
+  AIC_frac = c()
+  BIC_frac = c()
+  
+  ii = load[[i]] >= load_min
+
+  ## Uniform knots
+  for (no in knot.no){
+    knots = seq(17,29,length.out = no)
+    fit = lm(log(vib[[i]][ii]) ~ ns(load[[i]][ii], knots = knots))
+    sum = summary(fit)
+    sigma = sum$sigma
+    k = sum$df[1] #length(knots)
+    n = sum(!is.na(vib[[i]])) # no. of observations
+    AIC_unif = c(AIC_unif, n*log(sigma^2) + 2*k)
+    BIC_unif = c(BIC_unif, n*log(sigma^2) + log(n)*k)
+  }
+  
+  ## Quantile knots
+  for (no in knot.no){
+    knot_total = unique(quantile(load[[i]][ii],(0:(no + 1))/(no + 1),na.rm = TRUE))
+    knots = knot_total[2:(length(knot_total) - 1)] # remove endpoints
+    fit = lm(log(vib[[i]][ii]) ~ ns(load[[i]][ii], knots = knots))
+    sum = summary(fit)
+    sigma = sum$sigma
+    k = sum$df[1] # length(knots)
+    n = sum(!is.na(vib[[i]])) # no. of observations
+    AIC_frac = c(AIC_frac, n*log(sigma^2) + 2*k)
+    BIC_frac = c(BIC_frac, n*log(sigma^2) + log(n)*k)
+  }
+  aic_matrix = cbind(AIC_unif, AIC_frac)
+  dimnames(aic_matrix) = list(knot.no, c("AIC Uniform", "AIC Quantile"))
+  
+  bic_matrix = cbind(BIC_unif, BIC_frac)
+  dimnames(bic_matrix) = list(knot.no, c("BIC Uniform", "BIC Quantile"))
+
+    col_aic = function(x){
+    ifelse(x == min(aic_matrix),
+           paste("\\textcolor{red}{", formatC(x, dig=2, format="f"), "}"),
+           paste("\\textcolor{black}{", formatC(x, dig=2, format="f"), "}"))
+  }
+  
+  aic_matrix = col_aic(aic_matrix)
+
+  col_bic = function(x){
+    ifelse(x == min(bic_matrix),
+           paste("\\textcolor{red}{", formatC(x, dig=2, format="f"), "}"),
+           paste("\\textcolor{black}{", formatC(x, dig=2, format="f"), "}"))
+  }
+  
+  bic_matrix = col_bic(bic_matrix)
+  print(xtable(cbind(aic_matrix,bic_matrix),  align = c("|r|r|r|r|r|"), 
+               caption = c(paste("AIC and BIC values of WT", i, sep = ""))), sanitize.text.function = function(x){x})
+}
+@
+
+

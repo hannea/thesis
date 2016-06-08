@@ -1,4 +1,3 @@
-#### First data test ####
 #=========================================================================================
 # Description: Initial play with data, and testing the package dlm
 #

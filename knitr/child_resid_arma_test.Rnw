@@ -1,0 +1,113 @@
+<<include=FALSE>>=
+library(knitr)
+# set global chunk options
+opts_chunk$set(fig.width = 5, fig.height = 3, par = TRUE, fig.pos = "H", fig.align = "center", size = "footnotesize") 
+knit_hooks$set(par = function(before, options, envir) {
+  if (before) par(mar = c(4, 4, 2, 1)) # ? ? top right
+})
+opts_knit$set(concordance = FALSE)
+@
+
+<<set-parent, echo=FALSE, cache=FALSE>>=
+setwd("C:/Users/Hanne/Dropbox/aspeciale/R/data_investigation/Rnw")
+set_parent('main_parent.Rnw')
+@
+
+<<load_and_source, include=FALSE, cache=FALSE>>=
+#setwd("//math.aau.dk/Fileshares/Vestas")
+setwd("~/aspeciale/R_data_local")
+load("4WT_1Month.RData")
+
+#setwd("//math.aau.dk/Fileshares/Vestas/functions")
+setwd("C:/Users/Hanne/Dropbox/aspeciale/R/data_investigation/functions")
+source("identify_WTs_func_Vestas_file.R")
+source("count_alarms_constant_var_faster.R")
+source("count_alarms_hetero_faster.R")
+source("interpolate_func_Vestas_file_POSIXct_NAs.R")
+
+library(dplyr)
+@
+
+
+%\section{Fitting an ARMA to the residuals}
+
+<<identify,cache=TRUE, results='hide', echo=FALSE>>=
+split_data = identify_WTs_func(data)
+interpolated_vib  = interpolate_POSIXct_2mins(split_data, var = "RMSISOGeneratorDE")
+interpolated_load = interpolate_POSIXct_2mins(split_data, var = "GeneratorSpeed")
+
+vib  = interpolated_vib %>% select(contains("spline"))
+load = interpolated_load %>% select(contains("spline"))
+
+library(splines)
+no = 10
+load_min = 17
+res = NULL # data.frame()
+for (i in 1:4){
+  #ii = load[[i]] >= load_min
+  load_i_NA = replace(load[[i]], which(load[[i]] < load_min), NA)
+  
+  knot_total = unique(quantile(load_i_NA,(0:(no + 1))/(no + 1),na.rm = TRUE))
+  knots = knot_total[2:(length(knot_total) - 1)] # remove endpoints
+  fit = lm(log(vib[[i]]) ~ ns(load_i_NA, knots = knots), na.action = na.exclude) # include NA
+  res[[i]] = residuals(fit)
+  # length(res[[i]])
+  # sum(!is.na(res[[i]]))
+  # ggplot(data.frame(res[[i]]), aes(1:length(res[[i]]), res[[i]])) + geom_line()
+  #sum = summary(fit)
+  #res_temp = sum$residuals
+  #print(length(res_temp)) # not same length
+  # names(res_temp) = paste(i,"_res", sep = "")
+  #res[[i]] = res_temp #res %>% mutate_(.dots= setNames(varval), res))
+}
+#res_dataframe = data.frame(res) # they are not of same length
+#tbl_df(res_dataframe)
+@
+
+<<xtable_AIC, results='asis', echo=FALSE>>=
+library(xtable)
+for (i in 1:4){
+  aic = matrix(NA,6,6)
+  bic = matrix(NA,6,6)
+  
+  for(p in 0:5) {
+    for(q in 0:5) {
+      #print(p)
+      #print(q)
+      arma_fit = arima(res[[i]], order = c(p,0,q), include.mean = FALSE, optim.control = list(maxit = 500))
+      
+      ## AIC
+      aic_temp = arma_fit$aic
+      aic[p+1,q+1] = aic_temp
+      
+      ## BIC
+      bic_temp=AIC(arma_fit, k = log(arma_fit$nobs))
+      bic[p+1,q+1] = bic_temp
+    }
+  }
+  
+  # table of AIC and BIC
+  dimnames(aic) = list(paste("p = ", 0:5, sep = ""), paste("q = ", 0:5, sep = ""))
+  dimnames(bic) = list(paste("p = ", 0:5, sep = ""), paste("q = ", 0:5, sep = ""))
+
+  col_aic = function(x){
+    ifelse(x == min(aic),
+           paste("\\textcolor{red}{", formatC(x, dig=2, format="f"), "}"),
+           paste("\\textcolor{black}{", formatC(x, dig=2, format="f"), "}"))
+  }
+  
+  col_bic = function(x){
+    ifelse(x == min(bic),
+           paste("\\textcolor{red}{", formatC(x, dig=2, format="f"), "}"),
+           paste("\\textcolor{black}{", formatC(x, dig=2, format="f"), "}"))
+  }
+  
+  aic = col_aic(aic)
+  print(xtable(aic, align = c("|c|c|c|c|c|c|c|"), caption = c(paste("AIC values of the fit of an ARMA(p,q) to the residuals from WT", i, sep = ""))), sanitize.text.function = function(x){x})
+  
+    bic = col_bic(bic)
+  print(xtable(bic, align = c("|c|c|c|c|c|c|c|"), caption = c(paste("BIC values of the fit of an ARMA(p,q) to the residuals from WT", i, sep = ""))), sanitize.text.function = function(x){x})
+}
+@
+
+

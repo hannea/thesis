@@ -1,0 +1,78 @@
+<<testsetup, include=FALSE>>=
+library(knitr)
+# set global chunk options
+opts_chunk$set(fig.width = 4, fig.height = 3, par = TRUE, fig.pos = "H", fig.align = "center", size = "footnotesize") 
+knit_hooks$set(par = function(before, options, envir) {
+  if (before) par(mar = c(4, 4, 0.1, 1)) # ? ? top right
+})
+opts_knit$set(concordance = FALSE)
+@
+
+<<set-parent, echo=FALSE, cache=FALSE>>=
+setwd("C:/Users/Hanne/Dropbox/aspeciale/R/data_investigation/Rnw")
+set_parent('main_parent.Rnw')
+@
+
+<<load_and_source, include=FALSE, cache=TRUE>>=
+setwd("~/aspeciale/R_data_local")
+#load("testdata.Rdata")
+load("4WT_1Month.Rdata")
+setwd("C:/Users/Hanne/Dropbox/aspeciale/R/data_investigation/functions")
+source("identify_WTs_func_Vestas_file.R")
+@
+
+\begin{ex}
+One of the most common used splines is a cubic spline, i.e. spline of order 3. It is not possible with the human eye to see the non-smoothness of a cubic spline and it is rarely necessary to use a higher order spline. In this example a cubic spline is compared with a polynomial fit, where they both have $12$ degrees of freedom. The used dataset is a subset of the dataset \verb|4WT_1Month.Rdata| and the chosen variables are \verb|PowerActual| named \verb|power| and \verb|HarmonicPhase1GeneratorDE| named \verb|vibration|.Using the \verb|bs| function in the R-package \verb|splines| and the \verb|poly| function the two fits are compared.
+<<include=FALSE>>=
+#new_data = identify_WTs_func(testdata)
+new_data = identify_WTs_func(data)
+
+WT1 = new_data$WT1
+
+power = WT1$PowerActual[WT1$PowerActual>0]
+wind = WT1$WindSpeedActual[WT1$PowerActual>0]
+vibration = WT1$HarmonicPhase1GeneratorDE[WT1$PowerActual>0]
+#vibtest
+
+plot(power,wind, pch=".")
+plot(power, vibration, pch = ".")
+
+sub = 710:850
+#sub = seq(1,length(WT1[,1]),100)
+power = power[sub]
+wind = wind[sub]
+vibration = vibration[sub]
+
+plot(power,wind, pch = 20)
+plot(power,vibration, pch = 20)
+
+library(splines)
+fit_spline = lm(wind~bs(power,df=12))
+fit_poly = lm(wind~poly(power,degree = 12))
+
+fit_spline = lm(vibration~bs(power,df=12))
+fit_poly = lm(vibration~poly(power,degree = 12))
+
+new_power = data.frame(power = seq(1,3100,10))# seq(min(power),max(power),10))
+pred_spline = predict(fit_spline, new_power)
+pred_poly = predict(fit_poly, new_power)
+@
+
+<<eval=FALSE>>=
+library(splines)
+fit_spline = lm(vibration~bs(power, df = 12))
+fit_poly   = lm(vibration~poly(power, degree = 12))
+@
+In Figure \ref{fig:spline_poly} the two models are fitted to the data, and it is clear how the polynomial fit is unstable at the boundaries.
+<<spline_poly, echo=FALSE, fig.cap="A cubic spline and a polynmial fit both with 12 degrees of freedom fitted to the data.", fig.width = 6.5, fig.height = 3, warning=FALSE>>=
+df = data.frame(power = c(power,rep(NA,479)), vibration = c(vibration, rep(NA,479)))
+df = data.frame(df, rbind(data.frame(power_new = new_power[[1]],vibration_new = pred_poly, type = "polynomial"), data.frame(power_new = new_power[[1]],vibration_new = pred_spline, type = "spline")))
+library(ggplot2)
+ggplot(df, aes(power,vibration)) + 
+  geom_point(aes(power, vibration)) + 
+  geom_line(aes(power_new, vibration_new, col = type)) + 
+  coord_cartesian(xlim = c(0,2500), ylim = c(0,315))
+@
+\vspace{-1.5cm}\textcolor{white}{text}
+
+\end{ex}

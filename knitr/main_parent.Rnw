@@ -1,0 +1,274 @@
+\documentclass[a4paper,11pt,dvipsnames,twoside,openright]{memoir}   % Openright aabner kapitler paa hoejresider (openany begge)
+
+%%%% CUSTOM COMMANDS %%%%
+\newcommand{\sminsp}{\hspace{-1.7pt}\setminus \hspace{-1.7pt}}
+\newcommand{\var}[1]{\mathrm{Var}\left(#1\right)}
+\newcommand{\e}[1]{\mathrm{E}\left[#1\right]}
+\newcommand{\cov}[1]{\mathrm{Cov}\left(#1\right)}
+\newcommand{\N}[3]{\sim \mathcal{N}_#1\left( #2,#3\right)}
+
+\newcommand{\vek}[1]{\mathbf{#1}}
+\newcommand{\y}{\mathbf{y}}
+\newcommand{\x}{\mathbf{x}}
+\newcommand{\ve}{\mathbf{v}}
+\newcommand{\w}{\mathbf{w}}
+
+
+% ¤¤ Billede hack ¤¤ %
+\newcommand{\figur}[3]{
+  	\begin{figure}[H] \centering
+			\includegraphics[width=#1\textwidth]{graphics/#2}
+			\caption{#3}
+			\label{fig:#2}
+		\end{figure} 
+} 
+% Eks \figur{0.9}{graph.jpg}{lalala}
+
+%%%% PACKAGES %%%%
+
+% ¤¤ Oversaettelse og tegnsaetning ¤¤ %
+\usepackage[utf8]{inputenc}					% Input-indkodning af tegnsaet (UTF8)
+\usepackage[english]{babel}					% Dokumentets sprog
+\usepackage[T1]{fontenc}					% Output-indkodning af tegnsaet (T1)
+\usepackage{ae,aecompl}
+\usepackage{ragged2e,anyfontsize}			% Justering af elementer
+\usepackage{fixltx2e}						% Retter forskellige fejl i LaTeX-kernen
+
+% Algortimer %
+\usepackage[chapter]{algorithm}
+\usepackage{algorithmicx}
+\usepackage{algpseudocode}
+
+% Algorithmic modifications
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+										
+% ¤¤ Figurer og tabeller (floats) ¤¤ %
+\usepackage{epsfig}
+\usepackage{color}
+\usepackage{import}							% Bruges til at importere eps._tex fra incscape.
+\usepackage{epstopdf}
+\usepackage{graphicx} 						% Haandtering af eksterne billeder (JPG, PNG, EPS, PDF)
+\usepackage{eso-pic}						% Tilfoej billedekommandoer paa hver side
+\usepackage{wrapfig}						% Indsaettelse af figurer omsvoebt af tekst. \begin{wrapfigure}{Placering}{Stoerrelse}
+\usepackage{multirow}                		% Fletning af raekker og kolonner (\multicolumn og \multirow)
+\usepackage{multicol}         	        	% Muliggoer output i spalter
+\usepackage{rotating}						% Rotation af tekst med \begin{sideways}...\end{sideways}
+\usepackage{colortbl} 						% Farver i tabeller (fx \columncolor og \rowcolor)
+\usepackage{xcolor}							% Definer farver med \definecolor. Se mere: http://en.wikibooks.org/wiki/LaTeX/Colors
+\usepackage{flafter}						% Soerger for at floats ikke optraeder i teksten foer deres reference
+\let\newfloat\relax 						% Justering mellem float-pakken og memoir
+\usepackage{float}							% Muliggoer eksakt placering af floats, f.eks. \begin{figure}[H]
+\usepackage{lscape}
+
+\usepackage{diagbox}						% så man kan lave skrå streger i tabeller
+
+
+%%%   k-border matricer %%%
+\usepackage{etoolbox}
+\let\bbordermatrix\bordermatrix
+\patchcmd{\bbordermatrix}{8.75}{4.75}{}{}
+\patchcmd{\bbordermatrix}{\left(}{\left[}{}{}
+\patchcmd{\bbordermatrix}{\right)}{\right]}{}{}
+
+% ¤¤ Matematik mm. ¤¤
+\usepackage{amsmath,amssymb,stmaryrd} 		% Avancerede matematik-udvidelser
+\usepackage{mathtools}						% Andre matematik- og tegnudvidelser
+%\usepackage{textcomp}                 		% Symbol-udvidelser (f.eks. promille-tegn med \textperthousand )
+\SetSymbolFont{stmry}{bold}{U}{stmry}{m}{n} % to remove warning "Font shape U/stmry/b/n undefined"
+
+
+% ¤¤ Referencer og kilder ¤¤ %
+\usepackage[english]{varioref}				% Muliggoer bl.a. krydshenvisninger med sidetal (\vref)
+%\usepackage{natbib}						% Udvidelse med naturvidenskabelige citationsmodeller
+%\usepackage{xr}							% Referencer til eksternt dokument med \externaldocument{<NAVN>}
+%\usepackage{glossaries}					% Terminologi- eller symbolliste (se mere i Daleifs Latex-bog)
+\usepackage{breakcites}						% avoid cites to overflow the margins
+
+% ¤¤ Misc. ¤¤ %
+\usepackage{lipsum}							% Dummy text \lipsum[..]
+\usepackage[shortlabels]{enumitem}			% Muliggoer enkelt konfiguration af lister
+\usepackage{pdfpages}						% Goer det muligt at inkludere pdf-dokumenter med kommandoen \includepdf[pages={x-y}]{fil.pdf}	
+\usepackage[danish=quotes]{csquotes}
+\pdfoptionpdfminorversion=6					% Muliggoer inkludering af pdf dokumenter, af version 1.6 og hoejere
+\pretolerance=2500 							% Justering af afstand mellem ord (hoejt tal, mindre orddeling og mere luft mellem ord)
+\usepackage{listings}						% Kode-environment
+
+
+% Kommentarer og rettelser med \fxnote. Med 'final' i stedet for 'draft' udloeser hver note en error i den faerdige rapport.
+\usepackage[footnote,draft,danish,silent,nomargin]{fixme}		
+
+
+%%%% CUSTOM SETTINGS %%%%
+
+% ¤¤ Marginer ¤¤ %
+\setlrmarginsandblock{3.5cm}{2.5cm}{*}		% \setlrmarginsandblock{Indbinding}{Kant}{Ratio}
+\setulmarginsandblock{2.5cm}{3.0cm}{*}		% \setulmarginsandblock{Top}{Bund}{Ratio}
+\checkandfixthelayout 						% Oversaetter vaerdier til brug for andre pakker
+
+%	¤¤ Afsnitsformatering ¤¤ %
+\setlength{\parindent}{0mm}           		% Stoerrelse af indryk
+\setlength{\parskip}{3mm}          		% Afstand mellem afsnit ved brug af double Enter
+\linespread{1,1}							% Linie afstand
+
+% ¤¤ Litteraturlisten ¤¤ %
+\bibliographystyle{apalike}
+%\bibliographystyle{dk-apali}
+
+% ¤¤ Indholdsfortegnelse ¤¤ %
+\setsecnumdepth{subsection}		 			% Dybden af nummerede overkrifter (part/chapter/section/subsection)
+\maxsecnumdepth{subsection}					% Dokumentklassens graense for nummereringsdybde
+\settocdepth{subsection} 					% Dybden af indholdsfortegnelsen
+
+% ¤¤ Lister ¤¤ %
+\setlist{
+  topsep=0pt,								% Vertikal afstand mellem tekst og listen
+  itemsep=-1ex,								% Vertikal afstand mellem items
+} 
+
+% ¤¤ Visuelle referencer ¤¤ %
+\usepackage[colorlinks]{hyperref}			% Danner klikbare referencer (hyperlinks) i dokumentet.
+\hypersetup{colorlinks = true,				% Opsaetning af farvede hyperlinks (interne links, citeringer og URL)
+    linkcolor = black,
+    citecolor = black,
+    urlcolor = black
+}
+
+% ¤¤ Opsaetning af figur- og tabeltekst ¤¤ %
+\captionnamefont{\small\bfseries\itshape}	% Opsaetning af tekstdelen ('Figur' eller 'Tabel')
+\captiontitlefont{\small}					% Opsaetning af nummerering
+\captiondelim{. }							% Seperator mellem nummerering og figurtekst
+\hangcaption								% Venstrejusterer flere-liniers figurtekst under hinanden
+\captionwidth{\linewidth}					% Bredden af figurteksten
+\setlength{\belowcaptionskip}{10pt}			% Afstand under figurteksten
+
+
+% ¤¤ Kapiteludssende ¤¤ %
+\definecolor{numbercolor}{gray}{0.7}		% Definerer en farve til brug til kapiteludseende
+\newif\ifchapternonum
+\newif\ifappendiks
+
+\usepackage{colortbl}
+\usepackage{multirow}
+\usepackage{booktabs}
+
+
+% Definer farver
+\definecolor{primfarv}{RGB}{33,26,82}
+\definecolor{sekfarv}{RGB}{89,79,191}
+\definecolor{terfarv}{RGB}{84,97,110}
+
+% ¤¤ Define chapterstyle hanne ¤¤ %
+\usepackage{xcolor,fix-cm}
+\definecolor{numbercolor}{gray}{0.7}
+\newif\ifchapternonum
+
+\makechapterstyle{hanne}{
+\renewcommand\printchaptername{}
+\renewcommand\printchapternum{}
+\renewcommand\printchapternonum{\chapternonumtrue}
+\renewcommand\chaptitlefont{\fontfamily{pbk}\fontseries{m}
+						   %\fontfamily{pag}\fontseries{db} %\fontfamily{pbk}\fontseries{ux} %fonts not defined
+						   %https://en.wikibooks.org/wiki/LaTeX/Fonts#Font_families
+\fontshape{n}\fontsize{29}{35}\selectfont\raggedright}% kapitel titel
+		
+\renewcommand\chapnumfont{\fontfamily{pbk}\fontseries{m}\fontshape{n}
+						% \fontfamily{phv}\fontseries{m}\fontshape{n}% kapitel nummer
+\fontsize{0.7in}{0in}\selectfont\color{black}}% kapitel nummer,   \color{numbercolor}
+\renewcommand\printchaptertitle[1]{%
+\noindent%
+\ifchapternonum%
+\begin{tabularx}{\textwidth}{X}%
+{\parbox[b]{\linewidth}{\chaptitlefont ##1}%
+\vphantom{\raisebox{-15pt}{\chapnumfont 1}}}
+\end{tabularx}%
+\else
+\begin{tabularx}{\textwidth}{Xl}
+{\parbox[b]{\linewidth}{\chaptitlefont ##1}}
+& \raisebox{-5pt}{\chapnumfont \thechapter}%
+\end{tabularx}%
+\fi
+\par\vskip2mm\hrule
+}
+}
+\chapterstyle{hanne}
+
+% ¤¤ Sidehoved ¤¤ %
+
+\makepagestyle{AAU}							% Definerer sidehoved og sidefod udseende frem til ...
+\makepsmarks{AAU}{%
+	\createmark{chapter}{left}{shownumber}{}{. \ }
+	\createmark{section}{right}{shownumber}{}{ \ }
+	\createplainmark{toc}{both}{\contentsname}
+	\createplainmark{lof}{both}{\listfigurename}
+	\createplainmark{lot}{both}{\listtablename}
+	\createplainmark{bib}{both}{\bibname}
+	\createplainmark{index}{both}{\indexname}
+	\createplainmark{glossary}{both}{\glossaryname}
+}
+\nouppercaseheads											% Ingen Caps oenskes
+
+\makeevenhead{AAU}{\rightmark}{}{Aalborg University}				% Definerer lige siders sidehoved (\makeevenhead{Navn}{Venstre}{Center}{Hoejre})
+\makeoddhead{AAU}{Hanne Lone Andersen}{}{\leftmark}		% Definerer ulige siders sidehoved (\makeoddhead{Navn}{Venstre}{Center}{Hoejre})
+\makeevenfoot{AAU}{\thepage}{}{}							% Definerer lige siders sidefod (\makeevenfoot{Navn}{Venstre}{Center}{Hoejre})
+\makeoddfoot{AAU}{}{}{\thepage}								% Definerer ulige siders sidefod (\makeoddfoot{Navn}{Venstre}{Center}{Hoejre})
+\makeheadrule{AAU}{\textwidth}{0.5pt}						% Tilfoejer en streg under sidehovedets indhold
+\makefootrule{AAU}{\textwidth}{0.5pt}{1mm}					% Tilfoejer en streg under sidefodens indhold
+
+\copypagestyle{AAUchap}{AAU}								% Sidehoved for kapitelsider defineres som standardsider, men med blank sidehoved
+\makeoddhead{AAUchap}{}{}{}
+\makeevenhead{AAUchap}{}{}{}
+\makeheadrule{AAUchap}{\textwidth}{0pt}
+\aliaspagestyle{chapter}{AAUchap}							% Den ny style vaelges til at gaelde for chapters
+															% ... her															
+\pagestyle{AAU}												% Valg af sidehoved og sidefod
+
+
+%%%% ORDDELING %%%%
+\hyphenation{}
+
+
+%%%  til bevis, sætning, osv.  %%%
+\usepackage{framed} %til at få boks om
+\usepackage[thmmarks,hyperref,framed]{ntheorem}
+\theoremstyle{break}
+\theoremseparator{:}
+\global\setlength\theorempreskipamount{15pt}
+\global\setlength\theorempostskipamount{15pt} 
+
+\newtheorem{theo}{Theorem}[chapter]
+\newtheorem{defi}[theo]{Definition}
+\newtheorem{kor}[theo]{Korollar}
+\newtheorem{lem}[theo]{Lemma}
+\newtheorem{prop}[theo]{Proposition}
+\theorembodyfont{} 
+\newtheorem{rem}[theo]{Remark}
+
+\theoremsymbol{\vspace{3pt}\newline\makebox[\textwidth][r]{\ensuremath{\star}}}  
+\newtheorem{ex}[theo]{Example}
+
+\theoremstyle{nonumberbreak} 
+\theoremsymbol{\vspace{3pt}\newline\makebox[\textwidth][r]{\rule{1ex}{1ex}}}
+\newtheorem{pro}{Proof}
+
+
+\usepackage{empheq}
+
+\begin{document}
+
+<<setup, include=FALSE, cache=FALSE>>= # this is not compiled when compiling child
+library(knitr)
+# set global chunk options
+opts_chunk$set(fig.width=4, fig.height=3, par=TRUE, out.width='2in', fig.pos='H')
+knit_hooks$set(par = function(before, options, envir) {
+  if (before) par(mar = c(4, 4, .1, .1))
+})
+opts_knit$set(concordance = FALSE)
+
+#opts_chunk$set(fig.path='figure/minimal-', fig.align='center', fig.show='hold')
+options(formatR.arrow=TRUE,width=80) # set character width to 80 characters = standard
+@
+
+<<child-demo, child='child_spline_ex.Rnw'>>=
+@
+\end{document}
