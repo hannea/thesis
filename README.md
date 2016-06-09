@@ -1,4 +1,4 @@
-# thesis
+# thesis_scripts
 Folder with a small selection of the R scripts used in my thesis. The most important R scripts are found in the folder called "models". These scripts uses the functions implemented in the R package ´monitor´, which can be downloaded on https://github.com/hannea/monitor.
 
 ### Three folders:
